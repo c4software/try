@@ -69,9 +69,11 @@ selector() {
   epoch_now=$(date +%s)
 
   if [[ -z "$dirs" && -n "$query" ]]; then
-    echo "⚠️ Aucun projet trouvé correspondant à '$query'."
-    read -rp "Créer un nouveau projet nommé '$query' ? [y/N] " confirm
-    [[ "$confirm" =~ ^[Yy]$ ]] && create_new "$query"
+    echo "⚠️ No project found matching '$query'."
+    gum confirm --default=no "Create a new project named '$query'?"
+    if [[ $? -eq 0 ]]; then
+      create_new "$query"
+    fi
     return
   fi
 
@@ -164,7 +166,6 @@ create_new() {
 
   local dir="$TRY_PATH/${date}-${base}"
   mkdir -p "$dir"
-  echo "✅ Created $dir"
   cd "$dir" && pwd
 }
 
