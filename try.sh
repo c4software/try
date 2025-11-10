@@ -100,7 +100,7 @@ selector() {
     choices+=("$(printf "%-40s %6s, %s MB" "$dir" "$age" "$size_mb")")
   done <<< "$dirs"
 
-  choices+=("➕ Create new")
+  choices+=("+ Create new")
 
   local user_selection
   user_selection=$(printf "%s\n" "${choices[@]}" | \
@@ -132,7 +132,7 @@ selector() {
   [[ -z "$selected" ]] && return 1
 
   # Handle create new
-  if grep -q "➕ Create new" <<< "$selected"; then
+  if grep -q "+ Create new" <<< "$selected"; then
     create_new "$query"
     return
   fi

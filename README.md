@@ -23,6 +23,8 @@ Tired of directories like `test`, `test2`, `new-test`, or `tmp-stuff` scattered 
 - **Quick project cloning** via Git
 - **Simple Bash script — no dependencies beyond fzf and git**
 
+![demo](./demo.png)
+
 ---
 
 ## 🚀 Quick Start
