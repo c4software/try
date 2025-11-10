@@ -31,15 +31,14 @@ Tired of directories like `test`, `test2`, `new-test`, or `tmp-stuff` scattered 
 curl -sL https://raw.githubusercontent.com/c4software/try.sh/main/try.sh -o ~/.local/bin/try
 chmod +x ~/.local/bin/try
 
-# Default location: ~/src/tries
-export TRY_PATH=~/src/tries
+echo "source ~/.local/bin/try" >> ~/.bashrc  # or ~/.zshrc
 ````
 
 ### Dependencies
 
 * `fzf` (for interactive selection)
 * `git` (for cloning repositories)
-* Optional: [`gum`](https://github.com/charmbracelet/gum) for nicer confirmations when deleting.
+* [`gum`](https://github.com/charmbracelet/gum) (for deletion confirmation prompts)
 
 ---
 
