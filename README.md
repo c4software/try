@@ -48,6 +48,7 @@ echo 'eval "$(~/.local/try.sh init)"' >> ~/.zshrc # or ~/.bashrc
 
 ```bash
 try                     # Browse and open experiments interactively
+try .                   # Create a new project from the current directory
 try <query>             # Search for a matching directory or create it
 try clone <uri> [name]  # Clone a git repository into TRY_PATH
 try list                # List all projects with size and last modified date

@@ -68,6 +68,20 @@ selector() {
   local epoch_now mod_epoch age choices=()
   epoch_now=$(date +%s)
 
+  # If the query is . so ask to create a new project with the current dir name
+  if [[ "$query" == "." ]]; then
+    query=$(basename "$PWD")
+    gum confirm --default=no "Create a new project named '$query'?"
+    if [[ $? -eq 0 ]]; then
+      local current_dir_to_copy="$PWD"
+      create_new "$query"
+      # Copy the . contents to the newly created dir
+      cp -R "$current_dir_to_copy/." "$PWD/"
+      echo "✅ Created new project from current directory."
+    fi
+    return
+  fi
+
   if [[ -z "$dirs" && -n "$query" ]]; then
     echo "⚠️ No project found matching '$query'."
     gum confirm --default=no "Create a new project named '$query'?"
@@ -251,10 +265,10 @@ try - fzf-powered experiment manager
 
 USAGE:
   try                      # Open selector
+  try .                    # Create new project with the content of the current directory
   try <query>              # Search or create project matching <query>
   try clone <uri> [name]   # Clone git repo to tries directory
   try list                 # List all experiments
-  try init                 # Initialize try (create tries directory)
 
 SHORTCUTS:
   ↑↓ / Ctrl+J / Ctrl+K : navigate
