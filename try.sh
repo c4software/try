@@ -100,7 +100,7 @@ selector() {
     choices+=("$(printf "%-40s %6s, %s MB" "$dir" "$age" "$size_mb")")
   done <<< "$dirs"
 
-  choices+=("+ Create new")
+  choices+=("➕ Create new")
 
   local user_selection
   user_selection=$(printf "%s\n" "${choices[@]}" | \
@@ -132,7 +132,7 @@ selector() {
   [[ -z "$selected" ]] && return 1
 
   # Handle create new
-  if grep -q "+ Create new" <<< "$selected"; then
+  if grep -q "➕ Create new" <<< "$selected"; then
     create_new "$query"
     return
   fi
@@ -155,8 +155,7 @@ create_new() {
   if [[ -n "$suggested" ]]; then
     name="$suggested"
   else
-    printf "New try name (default: %s-): " "$date"
-    read name
+    name=$(gum input --placeholder "New experiment name (e.g. test-api)" --prompt "New try name: $date-")
     [[ -z "$name" ]] && return 1
   fi
 
@@ -225,8 +224,26 @@ _try_main() {
     clone)
       cmd_clone "$@"
       ;;
-    list|ls)
-      cmd_list
+    init)
+      local base_path="${1:-${HOME}/src/tries}"
+      cat <<EOF
+# >>> try.sh initialization >>>
+export TRY_PATH="$base_path"
+try() {
+  # Check if fzf is installed
+  if ! command -v fzf >/dev/null 2>&1; then
+    echo "In order to use try you need fzf. Please install fzf."
+    return 0
+  fi
+  if ! command -v gum >/dev/null 2>&1; then
+    echo "In order to use try you need gum. Please install gum."
+    return 0
+  fi
+  ~/.local/try.sh "\$@"
+}
+# <<< try.sh initialization <<<
+EOF
+      mkdir -p "$TRY_PATH"
       ;;
     -h|--help|help)
       cat <<'EOF'
@@ -237,6 +254,7 @@ USAGE:
   try <query>              # Search or create project matching <query>
   try clone <uri> [name]   # Clone git repo to tries directory
   try list                 # List all experiments
+  try init                 # Initialize try (create tries directory)
 
 SHORTCUTS:
   ↑↓ / Ctrl+J / Ctrl+K : navigate

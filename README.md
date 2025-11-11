@@ -33,7 +33,7 @@ Tired of directories like `test`, `test2`, `new-test`, or `tmp-stuff` scattered 
 curl -sL https://raw.githubusercontent.com/c4software/try.sh/main/try.sh -o ~/.local/bin/try
 chmod +x ~/.local/bin/try
 
-echo "source ~/.local/bin/try" >> ~/.bashrc  # or ~/.zshrc
+echo 'eval "$(~/.local/try.sh init)"' >> ~/.zshrc # or ~/.bashrc
 ````
 
 ### Dependencies
@@ -51,6 +51,7 @@ try                     # Browse and open experiments interactively
 try <query>             # Search for a matching directory or create it
 try clone <uri> [name]  # Clone a git repository into TRY_PATH
 try list                # List all projects with size and last modified date
+try init                # Initialize try (create tries directory)
 try --help              # Show help
 ```
 
