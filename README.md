@@ -51,8 +51,9 @@ try                     # Browse and open experiments interactively
 try .                   # Create a new project from the current directory
 try <query>             # Search for a matching directory or create it
 try clone <uri> [name]  # Clone a git repository into TRY_PATH
-try list                # List all projects with size and last modified date
+try list|ls             # List all projects with size and last modified date
 try init                # Initialize try (create tries directory)
+try prune               # Clear out all projects
 try --help              # Show help
 ```
 
@@ -92,9 +93,9 @@ Press <kbd>Enter</kbd> to open, or create a new project if none exists.
 
 * Automatically prefixes new projects with today’s date:
 
-  ```
-  2025-11-10-laravel-playground
-  ```
+```sh
+2025-11-10-laravel-playground
+```
 
 ### 🧰 Git Integration
 

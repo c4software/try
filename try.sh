@@ -213,6 +213,12 @@ cmd_clone() {
 
 # === List projects ===
 cmd_list() {
+  # If no projects
+  if [[ -z "$(find "$TRY_PATH" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)" ]]; then
+    echo "📂 No experiments found in $TRY_PATH"
+    return
+  fi
+
   echo
   echo "📂 Experiments in $TRY_PATH"
   echo
@@ -225,6 +231,14 @@ cmd_list() {
   done
 }
 
+cmd_prune() {
+  gum confirm --default=no "Are you sure you want to remove ALL experiments in $TRY_PATH ?"
+  if [[ $? -eq 0 ]]; then
+    rm -rf "$TRY_PATH"
+    mkdir -p "$TRY_PATH"
+  fi
+}
+
 # === Main entry point ===
 _try_main() {
   mkdir -p "$TRY_PATH"
@@ -232,12 +246,10 @@ _try_main() {
   shift 2>/dev/null || true
 
   case "$cmd" in
-    ""|cd)
-      selector
-      ;;
-    clone)
-      cmd_clone "$@"
-      ;;
+    ""|cd) selector ;;
+    clone) cmd_clone "$@" ;;
+    list|ls) cmd_list ;;
+    prune) cmd_prune ;;
     init)
       local base_path="${1:-${HOME}/src/tries}"
       cat <<EOF
@@ -268,7 +280,7 @@ USAGE:
   try .                    # Create new project with the content of the current directory
   try <query>              # Search or create project matching <query>
   try clone <uri> [name]   # Clone git repo to tries directory
-  try list                 # List all experiments
+  try list|ls              # List all experiments
 
 SHORTCUTS:
   ↑↓ / Ctrl+J / Ctrl+K : navigate
