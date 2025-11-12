@@ -239,6 +239,50 @@ cmd_prune() {
   fi
 }
 
+cmd_init() {
+  local base_path="${1:-${HOME}/src/tries}"
+  local script_path
+  script_path="$(realpath "${BASH_SOURCE[0]}")"
+
+  mkdir -p "$TRY_PATH"
+
+  cat <<EOF
+# >>> try.sh initialization >>>
+export TRY_PATH="$base_path"
+try() {
+  # Check dependencies
+  if ! command -v fzf >/dev/null 2>&1; then
+    echo "In order to use try you need fzf. Please install fzf."
+    return 0
+  fi
+  if ! command -v gum >/dev/null 2>&1; then
+    echo "In order to use try you need gum. Please install gum."
+    return 0
+  fi
+  source "$script_path"
+  try "\$@"
+}
+EOF
+}
+
+cmd_help(){
+  cat <<'EOF'
+  try - fzf-powered experiment manager
+
+  USAGE:
+    try                      # Open selector
+    try .                    # Create new project with the content of the current directory
+    try <query>              # Search or create project matching <query>
+    try clone <uri> [name]   # Clone git repo to tries directory
+    try list|ls              # List all experiments
+
+  SHORTCUTS:
+    ↑↓ / Ctrl+J / Ctrl+K : navigate
+    Enter                 : open project
+    Esc / Ctrl+C          : cancel
+EOF
+}
+
 # === Main entry point ===
 _try_main() {
   mkdir -p "$TRY_PATH"
@@ -250,44 +294,8 @@ _try_main() {
     clone) cmd_clone "$@" ;;
     list|ls) cmd_list ;;
     prune) cmd_prune ;;
-    init)
-      local base_path="${1:-${HOME}/src/tries}"
-      cat <<EOF
-# >>> try.sh initialization >>>
-export TRY_PATH="$base_path"
-try() {
-  # Check if fzf is installed
-  if ! command -v fzf >/dev/null 2>&1; then
-    echo "In order to use try you need fzf. Please install fzf."
-    return 0
-  fi
-  if ! command -v gum >/dev/null 2>&1; then
-    echo "In order to use try you need gum. Please install gum."
-    return 0
-  fi
-  ~/.local/try.sh "\$@"
-}
-# <<< try.sh initialization <<<
-EOF
-      mkdir -p "$TRY_PATH"
-      ;;
-    -h|--help|help)
-      cat <<'EOF'
-try - fzf-powered experiment manager
-
-USAGE:
-  try                      # Open selector
-  try .                    # Create new project with the content of the current directory
-  try <query>              # Search or create project matching <query>
-  try clone <uri> [name]   # Clone git repo to tries directory
-  try list|ls              # List all experiments
-
-SHORTCUTS:
-  ↑↓ / Ctrl+J / Ctrl+K : navigate
-  Enter                 : open project
-  Esc / Ctrl+C          : cancel
-EOF
-      ;;
+    init) cmd_init ;;
+    -h|--help|help) cmd_help ;;
     *)
       selector "$cmd"
       ;;
