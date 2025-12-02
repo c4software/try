@@ -114,12 +114,13 @@ selector() {
     choices+=("$(printf "%-40s %6s, %s MB" "$dir" "$age" "$size_mb")")
   done <<< "$dirs"
 
-  choices+=("➕ Create new")
+  choices+=("+ Create new")
 
   local user_selection
   user_selection=$(printf "%s\n" "${choices[@]}" | \
-    fzf --ansi --reverse --height=20 \
+    fzf --ansi --reverse --height=10 \
         --prompt="Select an experiment: " \
+        --footer="(Ctrl-D to delete selected)" \
         --expect=enter,ctrl-d)
 
   local selected
@@ -146,7 +147,7 @@ selector() {
   [[ -z "$selected" ]] && return 1
 
   # Handle create new
-  if grep -q "➕ Create new" <<< "$selected"; then
+  if grep -q "+ Create new" <<< "$selected"; then
     create_new "$query"
     return
   fi
@@ -278,6 +279,7 @@ cmd_help(){
 
   SHORTCUTS:
     ↑↓ / Ctrl+J / Ctrl+K : navigate
+    Ctrl-D                : delete selected project
     Enter                 : open project
     Esc / Ctrl+C          : cancel
 EOF
