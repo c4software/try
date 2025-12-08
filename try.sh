@@ -58,6 +58,13 @@ selector() {
   mkdir -p "$TRY_PATH"
 
   local query="${1:-}"
+  
+  # Detect if query looks like a Git URL and auto-clone
+  if [[ -n "$query" ]] && [[ "$query" =~ ^(https?://|git@|ssh://) || "$query" =~ \.git$ ]]; then
+    cmd_clone "$query"
+    return
+  fi
+  
   local dirs
   if [[ -n "$query" ]]; then
     dirs=$(find "$TRY_PATH" -mindepth 1 -maxdepth 1 -type d -iname "*$query*" 2>/dev/null | sort -r)
