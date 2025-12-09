@@ -247,6 +247,55 @@ cmd_prune() {
   fi
 }
 
+# === Make (plugin system) ===
+cmd_make() {
+  local plugin_name="${1:-}"
+  local extensions_dir="${HOME}/.config/try/"
+  
+  if [[ -z "$plugin_name" ]]; then
+    echo "Usage: try make <plugin> [project-name] [args...]"
+    echo ""
+    echo "Available plugins:"
+    if [[ -d "$extensions_dir" ]]; then
+      find "$extensions_dir" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while read -r plugin; do
+        local name=$(basename "$plugin" .sh)
+        echo "  - $name"
+      done
+    else
+      echo "  (no plugins found in $extensions_dir)"
+    fi
+    return 1
+  fi
+  
+  local plugin_path="$extensions_dir/${plugin_name}.sh"
+  
+  if [[ ! -f "$plugin_path" ]]; then
+    echo "❌ Plugin '$plugin_name' not found at: $plugin_path"
+    echo ""
+    echo "Available plugins:"
+    if [[ -d "$extensions_dir" ]]; then
+      find "$extensions_dir" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while read -r plugin; do
+        local name=$(basename "$plugin" .sh)
+        echo "  - $name"
+      done
+    fi
+    return 1
+  fi
+  
+  # Shift to remove plugin name from arguments
+  shift
+  
+  # Get project name (optional second argument, defaults to plugin name)
+  local project_name="${1:-$plugin_name}"
+  [[ -n "$1" ]] && shift
+  
+  # Create a new project using try's standard create_new function
+  create_new "$project_name"
+  
+  # Source the plugin in the context of the newly created directory
+  source "$plugin_path" "$@"
+}
+
 cmd_init() {
   local base_path="${1:-${HOME}/src/tries}"
   local script_path
@@ -283,6 +332,7 @@ cmd_help(){
     try <query>              # Search or create project matching <query>
     try clone <uri> [name]   # Clone git repo to tries directory
     try list|ls              # List all experiments
+    try make <plugin> [args] # Create project and execute plugin from ~/.config/try/extensions/
 
   SHORTCUTS:
     ↑↓ / Ctrl+J / Ctrl+K : navigate
@@ -304,6 +354,7 @@ _try_main() {
     list|ls) cmd_list ;;
     prune) cmd_prune ;;
     init) cmd_init ;;
+    make) cmd_make "$@" ;;
     -h|--help|help) cmd_help ;;
     *)
       selector "$cmd"

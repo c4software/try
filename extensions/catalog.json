@@ -1,0 +1,6 @@
+{
+    "laravel": {
+        "description": "Create a new Laravel project",
+        "command": "make laravel [project-name]"
+    }
+}
