@@ -59,7 +59,7 @@ try .                          # Create a new project from the current directory
 try <query>                    # Search for a matching directory or create it
 try clone <uri> [name]         # Clone a git repository into TRY_PATH
 try list|ls                    # List all projects with size and last modified date
-try make <plugin> [name]       # Create project using a plugin (e.g., laravel)
+try make <extension> [name]    # Create project using an extension (e.g., laravel)
 try extension list             # List available extensions from catalog
 try extension install <name>   # Install an extension from catalog
 try init                       # Initialize try (create tries directory)
@@ -72,8 +72,8 @@ Examples:
 ```bash
 try redis
 try .                                              # Create from current directory
-try https://github.com/tobi/try.git               # Auto-detects Git URL
-try clone https://github.com/tobi/try.git
+try https://github.com/c4software/try.git          # Auto-detects Git URL
+try clone https://github.com/c4software/try.git
 try make laravel my-app                            # Create Laravel project
 try extension install laravel                      # Install Laravel extension
 try list

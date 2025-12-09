@@ -421,7 +421,7 @@ cmd_help(){
     try <query>              # Search or create project matching <query>
     try clone <uri> [name]   # Clone git repo to tries directory
     try list|ls              # List all experiments
-    try make <plugin> [args] # Create project and execute plugin from ~/.config/try/extensions/
+    try make <extension> [args] # Create project and execute extension from ~/.config/try/
     try extension list       # List available extensions from catalog
     try extension install <name> # Install an extension from catalog
 
