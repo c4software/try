@@ -4,6 +4,9 @@
 # Requires: fzf, git
 
 TRY_PATH="${TRY_PATH:-${HOME}/src/tries}"
+TRY_EXTENSIONS_DIR="${HOME}/.config/try/"
+TRY_CATALOG_URL="https://raw.githubusercontent.com/c4software/try/refs/heads/main/extensions/catalog.json"
+TRY_EXTENSIONS_BASE_URL="https://raw.githubusercontent.com/c4software/try/refs/heads/main/extensions"
 
 # === Helpers ===
 get_date() {
@@ -250,31 +253,30 @@ cmd_prune() {
 # === Make (plugin system) ===
 cmd_make() {
   local plugin_name="${1:-}"
-  local extensions_dir="${HOME}/.config/try/"
   
   if [[ -z "$plugin_name" ]]; then
     echo "Usage: try make <plugin> [project-name] [args...]"
     echo ""
     echo "Available plugins:"
-    if [[ -d "$extensions_dir" ]]; then
-      find "$extensions_dir" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while read -r plugin; do
+    if [[ -d "$TRY_EXTENSIONS_DIR" ]]; then
+      find "$TRY_EXTENSIONS_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while read -r plugin; do
         local name=$(basename "$plugin" .sh)
         echo "  - $name"
       done
     else
-      echo "  (no plugins found in $extensions_dir)"
+      echo "  (no plugins found in $TRY_EXTENSIONS_DIR)"
     fi
     return 1
   fi
   
-  local plugin_path="$extensions_dir/${plugin_name}.sh"
+  local plugin_path="$TRY_EXTENSIONS_DIR/${plugin_name}.sh"
   
   if [[ ! -f "$plugin_path" ]]; then
     echo "❌ Plugin '$plugin_name' not found at: $plugin_path"
     echo ""
     echo "Available plugins:"
-    if [[ -d "$extensions_dir" ]]; then
-      find "$extensions_dir" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while read -r plugin; do
+    if [[ -d "$TRY_EXTENSIONS_DIR" ]]; then
+      find "$TRY_EXTENSIONS_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while read -r plugin; do
         local name=$(basename "$plugin" .sh)
         echo "  - $name"
       done
@@ -294,6 +296,96 @@ cmd_make() {
   
   # Source the plugin in the context of the newly created directory
   source "$plugin_path" "$@"
+}
+
+# === Extension management ===
+cmd_extension_list() {
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "❌ curl command not found. Please install curl."
+    return 1
+  fi
+  
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "❌ jq command not found. Please install jq."
+    return 1
+  fi
+  
+  local catalog
+  catalog=$(curl -sL "$TRY_CATALOG_URL")
+  
+  if [[ -z "$catalog" ]]; then
+    echo "❌ Failed to fetch catalog from $TRY_CATALOG_URL"
+    return 1
+  fi
+  
+  echo ""
+  echo "📦 Available extensions:"
+  echo ""
+  
+  # Parse JSON using jq
+  echo "$catalog" | jq -r 'to_entries[] | "  \(.key | . + " " * (20 - length))\(.value.description)"'
+}
+
+cmd_extension_install() {
+  local extension_name="${1:-}"
+  
+  if [[ -z "$extension_name" ]]; then
+    echo "Usage: try extension install <extension-name>"
+    echo ""
+    echo "Run 'try extension list' to see available extensions."
+    return 1
+  fi
+  
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "❌ curl command not found. Please install curl."
+    return 1
+  fi
+  
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "❌ jq command not found. Please install jq."
+    return 1
+  fi
+  
+  local catalog
+  catalog=$(curl -sL "$TRY_CATALOG_URL")
+  
+  if [[ -z "$catalog" ]]; then
+    echo "❌ Failed to fetch catalog from $TRY_CATALOG_URL"
+    return 1
+  fi
+  
+  # Check if extension exists in catalog using jq
+  if ! echo "$catalog" | jq -e "has(\"$extension_name\")" >/dev/null 2>&1; then
+    echo "❌ Extension '$extension_name' not found in catalog."
+    echo ""
+    echo "Run 'try extension list' to see available extensions."
+    return 1
+  fi
+  
+  # Create extensions directory if it doesn't exist
+  mkdir -p "$TRY_EXTENSIONS_DIR"
+  
+  local extension_url="${TRY_EXTENSIONS_BASE_URL}/${extension_name}.sh"
+  local target_path="${TRY_EXTENSIONS_DIR}/${extension_name}.sh"
+  
+  echo "📥 Downloading extension from $extension_url..."
+  
+  if curl -sL "$extension_url" -o "$target_path"; then
+    # Check if file was actually downloaded (not a 404 page)
+    if [[ -s "$target_path" ]] && head -n 1 "$target_path" | grep -q "^#"; then
+      chmod +x "$target_path"
+      echo "✅ Extension '$extension_name' installed successfully to $target_path"
+      echo ""
+      echo "You can now use it with: try make $extension_name [project-name]"
+    else
+      rm -f "$target_path"
+      echo "❌ Failed to download extension. The extension file may not exist in the repository."
+      return 1
+    fi
+  else
+    echo "❌ Failed to download extension from $extension_url"
+    return 1
+  fi
 }
 
 cmd_init() {
@@ -333,6 +425,8 @@ cmd_help(){
     try clone <uri> [name]   # Clone git repo to tries directory
     try list|ls              # List all experiments
     try make <plugin> [args] # Create project and execute plugin from ~/.config/try/extensions/
+    try extension list       # List available extensions from catalog
+    try extension install <name> # Install an extension from catalog
 
   SHORTCUTS:
     ↑↓ / Ctrl+J / Ctrl+K : navigate
@@ -355,6 +449,21 @@ _try_main() {
     prune) cmd_prune ;;
     init) cmd_init ;;
     make) cmd_make "$@" ;;
+    extension)
+      local subcmd="${1:-}"
+      shift 2>/dev/null || true
+      case "$subcmd" in
+        list) cmd_extension_list ;;
+        install) cmd_extension_install "$@" ;;
+        *)
+          echo "Usage: try extension <list|install>"
+          echo ""
+          echo "  list              List available extensions"
+          echo "  install <name>    Install an extension"
+          return 1
+          ;;
+      esac
+      ;;
     -h|--help|help) cmd_help ;;
     *)
       selector "$cmd"
