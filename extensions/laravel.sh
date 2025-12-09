@@ -5,7 +5,6 @@
 # Creates a new Laravel project using Composer
 
 echo "🚀 Creating Laravel project in: $PWD"
-echo ""
 
 # Check if composer is installed
 if ! command -v composer &> /dev/null; then
@@ -14,7 +13,6 @@ if ! command -v composer &> /dev/null; then
     return 1
 fi
 
-# Create Laravel project in current directory
 echo "📦 Running: composer create-project --prefer-dist laravel/laravel ."
 composer create-project --prefer-dist laravel/laravel .
 

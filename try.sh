@@ -318,11 +318,8 @@ cmd_extension_list() {
     return 1
   fi
   
-  echo ""
   echo "📦 Available extensions:"
-  echo ""
-  
-  # Parse JSON using jq
+
   echo "$catalog" | jq -r 'to_entries[] | "  \(.key | . + " " * (20 - length))\(.value.description)"'
 }
 

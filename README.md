@@ -20,8 +20,10 @@ Tired of directories like `test`, `test2`, `new-test`, or `tmp-stuff` scattered 
 - **Instant fuzzy search** via [`fzf`](https://github.com/junegunn/fzf)
 - **Smart age display** (days, weeks, months)
 - **Auto-dated directories** (`2025-11-10-my-experiment`)
-- **Quick project cloning** via Git
-- **Simple Bash script — no dependencies beyond fzf and git**
+- **Quick project cloning** via Git (auto-detects Git URLs)
+- **Plugin system** for scaffolding projects (Laravel, React, etc.)
+- **Extension catalog** for easy plugin installation
+- **Simple Bash script — minimal dependencies**
 
 ![demo](./demo.png)
 
@@ -33,35 +35,47 @@ Tired of directories like `test`, `test2`, `new-test`, or `tmp-stuff` scattered 
 curl -sL https://raw.githubusercontent.com/c4software/try.sh/main/try.sh -o ~/.local/bin/try
 chmod +x ~/.local/bin/try
 
-echo 'eval "$(~/.local/try.sh init)"' >> ~/.zshrc # or ~/.bashrc
-````
+echo 'eval "$(~/.local/bin/try init)"' >> ~/.zshrc # or ~/.bashrc
+```
 
 ### Dependencies
 
+**Required:**
 * `fzf` (for interactive selection)
 * `git` (for cloning repositories)
-* [`gum`](https://github.com/charmbracelet/gum) (for deletion confirmation prompts)
+* [`gum`](https://github.com/charmbracelet/gum) (for confirmation prompts)
+
+**Optional (for extension management):**
+* `curl` (for downloading extensions)
+* `jq` (for parsing extension catalog)
 
 ---
 
 ## 🧠 Usage
 
 ```bash
-try                     # Browse and open experiments interactively
-try .                   # Create a new project from the current directory
-try <query>             # Search for a matching directory or create it
-try clone <uri> [name]  # Clone a git repository into TRY_PATH
-try list|ls             # List all projects with size and last modified date
-try init                # Initialize try (create tries directory)
-try prune               # Clear out all projects
-try --help              # Show help
+try                            # Browse and open experiments interactively
+try .                          # Create a new project from the current directory
+try <query>                    # Search for a matching directory or create it
+try clone <uri> [name]         # Clone a git repository into TRY_PATH
+try list|ls                    # List all projects with size and last modified date
+try make <plugin> [name]       # Create project using a plugin (e.g., laravel)
+try extension list             # List available extensions from catalog
+try extension install <name>   # Install an extension from catalog
+try init                       # Initialize try (create tries directory)
+try prune                      # Clear out all projects
+try --help                     # Show help
 ```
 
 Examples:
 
 ```bash
 try redis
+try .                                              # Create from current directory
+try https://github.com/tobi/try.git               # Auto-detects Git URL
 try clone https://github.com/tobi/try.git
+try make laravel my-app                            # Create Laravel project
+try extension install laravel                      # Install Laravel extension
 try list
 ```
 
@@ -104,6 +118,48 @@ Clone repositories directly:
 ```bash
 try clone https://github.com/user/repo.git
 # → ~/src/tries/2025-11-10-user-repo
+```
+
+Or just pass a Git URL directly:
+
+```bash
+try https://github.com/user/repo.git
+# Auto-detects and clones automatically
+```
+
+### 🔌 Plugin System
+
+Create pre-configured projects using plugins:
+
+```bash
+try make laravel my-app
+# Creates a new Laravel project with all dependencies
+```
+
+Plugins are stored in `~/.config/try/` and can scaffold entire project structures.
+
+### 📦 Extension Catalog
+
+Browse and install community extensions:
+
+```bash
+# List available extensions
+try extension list
+
+# Install an extension
+try extension install laravel
+```
+
+Extensions are downloaded from the official catalog and ready to use immediately.
+
+### 📂 Create from Current Directory
+
+Quickly convert your current directory into a try experiment:
+
+```bash
+cd ~/my-project
+try .
+# Copies current directory contents to a new timestamped experiment
 ```
 
 ### 🗑️ Safe Deletion
